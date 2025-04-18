@@ -17,6 +17,7 @@ const Layout: React.FC = () => {
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = token && user && user.isAdmin;
+  const isMember = token && user  && !user.isAdmin;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,6 +44,8 @@ const Layout: React.FC = () => {
       <div className="flex">
         <aside className="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed overflow-y-auto">
           <nav className="p-4 space-y-1">
+            {isMember && (
+              <>
             <Link to="/member/welcome" className="flex items-center space-x-2 p-3 hover:bg-indigo-50 rounded-lg transition-colors">
               <Home className="h-5 w-5 text-indigo-600" />
               <span className="text-gray-700">Home</span>
@@ -71,7 +74,8 @@ const Layout: React.FC = () => {
               <Group className="h-5 w-5 text-indigo-600" />
               <span className="text-gray-700">Groupes</span>
             </Link>
-
+            </>
+            )}
             {isAdmin && (
               <>
                 <div className="border-t border-gray-200 my-4" />
