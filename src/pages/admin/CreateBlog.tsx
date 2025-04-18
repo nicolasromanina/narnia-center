@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, PlusCircle } from 'lucide-react';
+import { Calendar, Tag, BookOpen, PlusCircle, PenTool } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-function CreateEventPage() {
+function CreateBlog() {
   const [formData, setFormData] = useState({
     title: '',
+    excerpt: '',
     date: '',
-    time: '',
-    description: '',
-    location: '',
+    category: '',
+    readingTime: '',
     image: null
   });
-
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -32,32 +31,28 @@ function CreateEventPage() {
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.title) newErrors.title = 'Title is required';
+    if (!formData.excerpt) newErrors.excerpt = 'Excerpt is required';
     if (!formData.date) newErrors.date = 'Date is required';
-    if (!formData.time) newErrors.time = 'Time is required';
-    if (!formData.description) newErrors.description = 'Description is required';
-    if (!formData.location) newErrors.location = 'Location is required';
-
+    if (!formData.category) newErrors.category = 'Category is required';
+    if (!formData.readingTime) newErrors.readingTime = 'Reading time is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-
     try {
       const token = localStorage.getItem('token');
       const data = new FormData();
       data.append('title', formData.title);
+      data.append('excerpt', formData.excerpt);
       data.append('date', formData.date);
-      data.append('time', formData.time);
-      data.append('description', formData.description);
-      data.append('location', formData.location);
+      data.append('category', formData.category);
+      data.append('readingTime', formData.readingTime);
       if (formData.image) {
         data.append('image', formData.image);
       }
@@ -66,7 +61,7 @@ function CreateEventPage() {
         console.log(`${key}:`, value instanceof File ? value.name : value);
       }
 
-      const response = await fetch('http://localhost:5000/api/events', {
+      const response = await fetch('http://localhost:5000/api/posts', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -82,22 +77,22 @@ function CreateEventPage() {
       }
 
       if (!response.ok) {
-        throw new Error(responseData.message || 'Failed to create event');
+        throw new Error(responseData.message || 'Failed to create post');
       }
 
       setFormData({
         title: '',
+        excerpt: '',
         date: '',
-        time: '',
-        description: '',
-        location: '',
+        category: '',
+        readingTime: '',
         image: null
       });
-      alert('Event created successfully!');
-      navigate('/events');
+      alert('Post created successfully!');
+      navigate('/blogs');
     } catch (error) {
       console.error('Error:', error);
-      alert(error.message || 'Failed to create event');
+      alert(error.message || 'Failed to create post');
     } finally {
       setIsSubmitting(false);
     }
@@ -126,7 +121,7 @@ function CreateEventPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-5xl font-bold text-white"
           >
-            Create New Event
+            Create New Blog Post
           </motion.h1>
         </div>
       </div>
@@ -140,25 +135,37 @@ function CreateEventPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-lg border ${errors.title ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
-                  placeholder="Enter event title"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Post Title *</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-lg border ${errors.title ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
+                    placeholder="Enter post title"
+                  />
+                  <PenTool className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                </div>
                 {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Excerpt *</label>
+                <textarea
+                  name="excerpt"
+                  value={formData.excerpt}
+                  onChange={handleChange}
+                  rows="3"
+                  className={`w-full px-4 py-3 rounded-lg border ${errors.excerpt ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
+                  placeholder="Enter a short excerpt"
+                />
+                {errors.excerpt && <p className="mt-1 text-sm text-red-500">{errors.excerpt}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
                   <div className="relative">
                     <input
                       type="date"
@@ -173,61 +180,40 @@ function CreateEventPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Time *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                   <div className="relative">
                     <input
                       type="text"
-                      name="time"
-                      value={formData.time}
+                      name="category"
+                      value={formData.category}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg border ${errors.time ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
-                      placeholder="e.g., 9:00 AM - 5:00 PM"
+                      className={`w-full px-4 py-3 rounded-lg border ${errors.category ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
+                      placeholder="e.g., News, Culture"
                     />
-                    <Clock className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Tag className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   </div>
-                  {errors.time && <p className="mt-1 text-sm text-red-500">{errors.time}</p>}
+                  {errors.category && <p className="mt-1 text-sm text-red-500">{errors.category}</p>}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Reading Time *</label>
                 <div className="relative">
                   <input
                     type="text"
-                    name="location"
-                    value={formData.location}
+                    name="readingTime"
+                    value={formData.readingTime}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-lg border ${errors.location ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
-                    placeholder="Enter event location"
+                    className={`w-full px-4 py-3 rounded-lg border ${errors.readingTime ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
+                    placeholder="e.g., 5 min"
                   />
-                  <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <BookOpen className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
-                {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
+                {errors.readingTime && <p className="mt-1 text-sm text-red-500">{errors.readingTime}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows="4"
-                  className={`w-full px-4 py-3 rounded-lg border ${errors.description ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
-                  placeholder="Describe your event..."
-                />
-                {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Image (optional)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Post Image (optional)</label>
                 <input
                   type="file"
                   name="image"
@@ -251,7 +237,7 @@ function CreateEventPage() {
               } transition-colors`}
             >
               <PlusCircle className="h-5 w-5" />
-              {isSubmitting ? 'Creating...' : 'Create Event'}
+              {isSubmitting ? 'Creating...' : 'Create Post'}
             </motion.button>
           </form>
         </motion.div>
@@ -260,4 +246,4 @@ function CreateEventPage() {
   );
 }
 
-export default CreateEventPage;
+export default CreateBlog;

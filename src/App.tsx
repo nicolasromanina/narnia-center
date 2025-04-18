@@ -14,6 +14,7 @@ import DonatePage from './pages/public/Donate';
 import Schedule from './pages/public/Schedule';
 import Login from './pages/public/Login';
 import Signup from './pages/public/Signup';
+import BlogDetail from './pages/public/BlogDetail';
 import SubscribersList from './pages/admin/SubscribersList';
 import UserList from './pages/admin/UserList';
 import Welcome from './pages/member/Home';
@@ -24,7 +25,13 @@ import Mentorship from './pages/member/Mentorship';
 import Notifications from './pages/member/Notifications';
 import Programs from './pages/member/Programs';
 import Resources from './pages/member/Resources';
+import Event from './pages/member/Events';
 import CreateEventPage from './pages/admin/CreateEvent';
+import EventPage from './pages/admin/Events';
+import CreateBlog from './pages/admin/CreateBlog';
+import Blogs from './pages/admin/Blogs';
+import AdminRoute from './components/routes/AdminRoute';
+import MemberRoute from './components/routes/MemberRoute';
 function App() {
   return (
     <Router>
@@ -45,10 +52,15 @@ function App() {
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/donate" element={<DonatePage />} />
             <Route path="/blog" element={<BlogPage />} />
-            <Route path="/subscribers" element={<SubscribersList />} />
-            <Route path="/users" element={<UserList />} />
+            <Route path="/blog/:id" element={<BlogDetail />} />
+            {/* Route publique */}
+            
             {/* Route protégée avec le Layout pour les membres */}
-            <Route path="/member" element={<Layout />}>
+            <Route path="/member" element={
+              <MemberRoute>
+                <Layout />
+              </MemberRoute>
+            }>
               <Route path="welcome" element={<Welcome />} />
               <Route path="forum" element={<Forum />} />
               <Route path="groups" element={<Groups />} />
@@ -57,12 +69,25 @@ function App() {
               <Route path="notifications" element={<Notifications />} />
               <Route path="programs" element={<Programs />} />
               <Route path="resources" element={<Resources />} />
-            
-              {/* Vous pouvez ajouter d'autres routes imbriquées, par exemple : */}
+              <Route path="events" element={<Event />} />
+              {/* Vous pouvez ajouter d'autres routes pour les membres ici */}
               <Route path="home" element={<Welcome />} />
               {/* ... */}
             </Route>
+            {/* Route protégée avec le Layout pour les administrateurs */}
+            <Route path="/admin" element={
+              <AdminRoute>
+                <Layout />
+              </AdminRoute>
+            }>
+              <Route path="subscribers" element={<SubscribersList />} />
+              <Route path="users" element={<UserList />} />
               <Route path="create-event" element={<CreateEventPage />} />
+              <Route path="events" element={<EventPage />} />
+              <Route path="create-blog" element={<CreateBlog />} />
+              <Route path="blogs" element={<Blogs />} />
+              {/* Vous pouvez ajouter d'autres routes pour les administrateurs ici */}
+            </Route>
           </Routes>
         </main>
         <Footer />

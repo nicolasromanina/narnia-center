@@ -2,54 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, X, Search, HeartHandshake } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const events = [
-  {
-    id: '1',
-    title: 'Easter Celebration',
-    date: 'March 31, 2024',
-    time: '10:00 AM - 2:00 PM',
-    description:
-      'Join us for a special Easter service followed by a community lunch and engaging activities for all ages. Celebrate renewal and hope with our community.',
-    location: 'Main Hall',
-    image:
-      'https://images.unsplash.com/photo-1544427920-c49ccfb85579?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'
-  },
-  {
-    id: '2',
-    title: 'Youth Conference 2024',
-    date: 'April 15-17, 2024',
-    time: '9:00 AM - 5:00 PM',
-    description:
-      'Three days of inspiring speakers, dynamic worship sessions, and interactive workshops designed to empower young adults in their journey of faith and leadership.',
-    location: 'Conference Center',
-    image:
-      'https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'
-  },
-  {
-    id: '3',
-    title: 'Community Outreach Day',
-    date: 'April 20, 2024',
-    time: '8:00 AM - 3:00 PM',
-    description:
-      'Engage in various service projects and outreach activities that make a tangible impact on our local community. Join us to serve and transform lives.',
-    location: 'Various Locations',
-    image:
-      'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'
-  },
-  {
-    id: '4',
-    title: 'Worship Night',
-    date: 'April 25, 2024',
-    time: '7:00 PM - 9:00 PM',
-    description:
-      'An evening of contemporary worship music and heartfelt prayer. Experience a powerful night of spiritual connection and community celebration.',
-    location: 'Main Sanctuary',
-    image:
-      'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'
-  },
-  // ... (les données d'événements restent inchangées)
-];
-
 function RegisterModal({ event, onClose }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -164,17 +116,33 @@ export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/events')
-      .then(response => response.json())
-      .then(data => setEvents(data))
-      .catch(error => console.error('Error fetching events:', error));
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/events');
+        if (!response.ok) throw new Error('Failed to fetch events');
+        const data = await response.json();
+        console.log('Fetched events:', data);
+        setEvents(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+    fetchEvents();
   }, []);
 
   const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (loading) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
+  if (error) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Error: {error}</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -238,17 +206,25 @@ export default function EventsPage() {
             >
               {filteredEvents.map((event) => (
                 <motion.div
-                  key={event.id}
+                  key={event._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
                 >
                   <div className="relative h-60">
                     <img
-                      src={event.image}
+                      src={event.image.startsWith('http') ? event.image : `http://localhost:5000${event.image}`}
                       alt={event.title}
                       className="h-full w-full object-cover transform group-hover:scale-105 transition-transform"
                       loading="lazy"
+                      onError={(e) => {
+                        console.error(`Failed to load backend image: http://localhost:5000${event.image}`);
+                        e.target.src = event.image; // Try frontend public folder
+                        e.target.onerror = () => {
+                          console.error(`Failed to load frontend image: ${event.image}`);
+                          e.target.src = '/placeholder-image.jpg';
+                        };
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
@@ -305,8 +281,8 @@ export default function EventsPage() {
       </div>
 
       <RegisterModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-            {/* Floating CTA */}
-            <motion.div 
+      {/* Floating CTA */}
+      <motion.div 
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}

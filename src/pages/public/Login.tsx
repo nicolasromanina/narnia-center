@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, Eye, EyeOff } from 'lucide-react';
 
@@ -12,7 +12,15 @@ export default function Login() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.email === 'nicolasromanina@gmail.com' && user.isAdmin) {
+      navigate('/admin/create-event');
+    } else if (user) {
+      navigate('/member/home');
+    }
+  }, [navigate]);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -42,8 +50,8 @@ export default function Login() {
       console.log('Login successful:', data);
       
       // Redirection selon le rôle et l'email
-      if (data.user.email === 'admin@gmail.com' && data.user.isAdmin) {
-        navigate('/create-event');
+      if (data.user.email === 'nicolasromanina@gmail.com' && data.user.isAdmin) {
+        navigate('/admin/create-event');
       } else {
         navigate('/member/home');
       }

@@ -1,16 +1,23 @@
 import React from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { Users, BookOpen, Calendar, MessageSquare, Bell, UserPlus, FileText, Group, Home, LogOut } from 'lucide-react';
+import {
+  Users, BookOpen, Calendar, MessageSquare, Bell, UserPlus,
+  FileText, Group, Home, LogOut, ClipboardList, Newspaper, UserCheck
+} from 'lucide-react';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
+
   const handleLogout = () => {
-    // Supprimer les données d'authentification de localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    // Rediriger vers la page de connexion
     navigate('/login');
   };
+
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = token && user && user.isAdmin;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-indigo-600 text-white sticky top-0 z-50">
@@ -34,7 +41,7 @@ const Layout: React.FC = () => {
       </nav>
 
       <div className="flex">
-        <aside className="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed">
+        <aside className="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed overflow-y-auto">
           <nav className="p-4 space-y-1">
             <Link to="/member/welcome" className="flex items-center space-x-2 p-3 hover:bg-indigo-50 rounded-lg transition-colors">
               <Home className="h-5 w-5 text-indigo-600" />
@@ -64,6 +71,37 @@ const Layout: React.FC = () => {
               <Group className="h-5 w-5 text-indigo-600" />
               <span className="text-gray-700">Groupes</span>
             </Link>
+
+            {isAdmin && (
+              <>
+                <div className="border-t border-gray-200 my-4" />
+                <span className="text-xs text-gray-500 px-3">Admin Panel</span>
+                <Link to="/admin/events" className="flex items-center space-x-2 p-3 hover:bg-red-50 rounded-lg transition-colors">
+                  <Calendar className="h-5 w-5 text-red-600" />
+                  <span className="text-gray-700">Manage Events</span>
+                </Link>
+                <Link to="/admin/create-event" className="flex items-center space-x-2 p-3 hover:bg-red-50 rounded-lg transition-colors">
+                  <ClipboardList className="h-5 w-5 text-red-600" />
+                  <span className="text-gray-700">Create Event</span>
+                </Link>
+                <Link to="/admin/blogs" className="flex items-center space-x-2 p-3 hover:bg-red-50 rounded-lg transition-colors">
+                  <Newspaper className="h-5 w-5 text-red-600" />
+                  <span className="text-gray-700">Blogs</span>
+                </Link>
+                <Link to="/admin/create-blog" className="flex items-center space-x-2 p-3 hover:bg-red-50 rounded-lg transition-colors">
+                  <FileText className="h-5 w-5 text-red-600" />
+                  <span className="text-gray-700">Create Blog</span>
+                </Link>
+                <Link to="/admin/subscribers" className="flex items-center space-x-2 p-3 hover:bg-red-50 rounded-lg transition-colors">
+                  <UserCheck className="h-5 w-5 text-red-600" />
+                  <span className="text-gray-700">Subscribers</span>
+                </Link>
+                <Link to="/admin/users" className="flex items-center space-x-2 p-3 hover:bg-red-50 rounded-lg transition-colors">
+                  <Users className="h-5 w-5 text-red-600" />
+                  <span className="text-gray-700">Users</span>
+                </Link>
+              </>
+            )}
           </nav>
         </aside>
 
